@@ -1,23 +1,22 @@
-QT       += core gui sql
+QT       += core gui sql charts printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
 SOURCES += \
+    client.cpp \
     dbconnection.cpp \
     main.cpp \
     mainwindow.cpp \
-    dbconnection.cpp \
-    client.cpp \
     commande.cpp
 
 HEADERS += \
+    client.h \
+    commande.h \
     dbconnection.h \
     mainwindow.h \
-    dbconnection.h \
-    client.h \
-    commande.h
+
 
 FORMS += \
     mainwindow.ui
