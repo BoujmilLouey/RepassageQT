@@ -83,3 +83,75 @@ QSqlQueryModel* Client::afficher()
                     DBConnection::instance().db());
     return model;
 }
+QSqlQueryModel* Client::rechercheMulti(const QString &nom,
+                                       const QString &email,
+                                       const QString &telephone,
+                                       const QString &triColonne,
+                                       bool ordreAscendant)
+{
+    QString sql = "SELECT ID_CLIENT, NOM, PRENOM, EMAIL, TELEPHONE, ADRESSE "
+                  "FROM CLIENT WHERE 1 = 1";
+
+    // ---- Filtres de recherche (3 critères) ----
+    if (!nom.isEmpty())
+        sql += " AND LOWER(NOM) LIKE :nom";
+    if (!email.isEmpty())
+        sql += " AND LOWER(EMAIL) LIKE :email";
+    if (!telephone.isEmpty())
+        sql += " AND TELEPHONE LIKE :tel";
+
+    // ---- Tri multicritères ----
+    QString colonneTri = "NOM";
+    if (triColonne == "Prenom")
+        colonneTri = "PRENOM";
+    else if (triColonne == "Email")
+        colonneTri = "EMAIL";
+
+    sql += " ORDER BY " + colonneTri + (ordreAscendant ? " ASC" : " DESC");
+
+    QSqlQuery query(DBConnection::instance().db());
+    query.prepare(sql);
+
+    // Bind des paramètres
+    if (!nom.isEmpty())
+        query.bindValue(":nom", "%" + nom.toLower() + "%");
+    if (!email.isEmpty())
+        query.bindValue(":email", "%" + email.toLower() + "%");
+    if (!telephone.isEmpty())
+        query.bindValue(":tel", "%" + telephone + "%");
+
+    if (!query.exec()) {
+        qDebug() << "Erreur rechercheMulti CLIENT:" << query.lastError().text();
+    }
+
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery(std::move(query));
+    return model;
+}
+double Client::totalDepense(int idClient)
+{
+    QSqlQuery query(DBConnection::instance().db());
+    query.prepare("SELECT SUM(MONTANT_TOTAL) FROM COMMANDE WHERE ID_CLIENT = :id");
+    query.bindValue(":id", idClient);
+
+    if (query.exec() && query.next()) {
+        return query.value(0).toDouble();
+    }
+
+    return 0.0;
+}
+
+
+QString Client::niveauFidelite(int idClient)
+{
+    double total = totalDepense(idClient);
+
+    if (total < 100)
+        return "Bronze";
+    else if (total < 500)
+        return "Silver";
+    else
+        return "Gold";
+}
+
+

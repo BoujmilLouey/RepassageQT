@@ -24,6 +24,12 @@ private slots:
     void on_btnAjouterClient_clicked();
     void on_btnModifierClient_clicked();
     void on_btnSupprimerClient_clicked();
+    void on_btnRechercheClient_clicked();
+    void on_btnStatsClients_clicked();
+    void on_btnExporterClientsPdf_clicked();
+    void on_btnTotalDepenseClient_clicked();
+    void on_btnFideliteClient_clicked();
+
 
     // (On ajoutera ceux de Commande plus tard si besoin)
 

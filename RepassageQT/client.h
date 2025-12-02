@@ -37,6 +37,15 @@ public:
 
     // Affichage
     static QSqlQueryModel* afficher();
+    // Recherche + tri multicritères
+    static QSqlQueryModel* rechercheMulti(const QString &nom,
+                                          const QString &email,
+                                          const QString &telephone,
+                                          const QString &triColonne,
+                                          bool ordreAscendant);
+    static double totalDepense(int idClient);
+    static QString niveauFidelite(int idClient);
+
 
 private:
     int m_id;
