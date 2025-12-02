@@ -4,6 +4,7 @@
 #include <QString>
 #include <QSqlQueryModel>
 
+
 class Client
 {
 public:
@@ -54,6 +55,7 @@ private:
     QString m_email;
     QString m_telephone;
     QString m_adresse;
+
 };
 
 #endif // CLIENT_H

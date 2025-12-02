@@ -29,7 +29,15 @@ private slots:
     void on_btnExporterClientsPdf_clicked();
     void on_btnTotalDepenseClient_clicked();
     void on_btnFideliteClient_clicked();
-
+    // Slots pour les boutons Commandes
+    void on_btnAjouterCommande_clicked();
+    void on_btnModifierCommande_clicked();
+    void on_btnSupprimerCommande_clicked();
+    void on_btnRechercheCommande_clicked();
+    void on_btnStatsCommandes_clicked();
+    void on_btnExporterCommandesPdf_clicked();
+    void on_btnCommandesPourClient_clicked();
+    void on_btnChiffreAffairesTotal_clicked();
 
     // (On ajoutera ceux de Commande plus tard si besoin)
 
@@ -37,6 +45,7 @@ private:
     Ui::MainWindow *ui;
 
     QSqlQueryModel *m_modelClients;
+    QSqlQueryModel *m_modelCommandes;
 };
 
 #endif // MAINWINDOW_H
