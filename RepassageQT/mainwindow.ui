@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Rattrapage - Gestion de Clients/Commande</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
@@ -28,7 +28,7 @@
     </property>
     <widget class="QWidget" name="tabClients">
      <attribute name="title">
-      <string>Tab 1</string>
+      <string>Clients</string>
      </attribute>
      <widget class="QLineEdit" name="lineIdClient">
       <property name="geometry">
@@ -456,7 +456,7 @@
     </widget>
     <widget class="QWidget" name="tabCommandes">
      <attribute name="title">
-      <string>Tab 2</string>
+      <string>Commandes</string>
      </attribute>
      <widget class="QLabel" name="label_6">
       <property name="geometry">
@@ -822,7 +822,7 @@
       <widget class="QPushButton" name="btnRechercheCommande">
        <property name="geometry">
         <rect>
-         <x>70</x>
+         <x>20</x>
          <y>160</y>
          <width>101</width>
          <height>24</height>
@@ -907,6 +907,19 @@
          <string>Décroissant</string>
         </property>
        </item>
+      </widget>
+      <widget class="QPushButton" name="btnAfficherToutesCommandes">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>160</y>
+         <width>101</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Afficher Tous</string>
+       </property>
       </widget>
      </widget>
      <widget class="QPushButton" name="btnExporterCommandesPdf">

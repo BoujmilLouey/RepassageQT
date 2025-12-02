@@ -8,12 +8,14 @@ class DBConnection
 public:
     static DBConnection& instance();
 
-    QSqlDatabase db() const { return m_db; }
     bool open();
     void close();
 
+    QSqlDatabase db() const;
+
 private:
-    DBConnection();                              // ctor privé
+    DBConnection();
+    ~DBConnection();
     DBConnection(const DBConnection&) = delete;
     DBConnection& operator=(const DBConnection&) = delete;
 

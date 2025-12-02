@@ -98,6 +98,7 @@ public:
     QLabel *label_17;
     QComboBox *comboTriCommande;
     QComboBox *comboOrdreCommande;
+    QPushButton *btnAfficherToutesCommandes;
     QPushButton *btnExporterCommandesPdf;
     QPushButton *btnCommandesPourClient;
     QPushButton *btnStatsCommandes;
@@ -313,7 +314,7 @@ public:
         lineIdClientFiltreCommande->setGeometry(QRect(120, 130, 113, 24));
         btnRechercheCommande = new QPushButton(groupBox);
         btnRechercheCommande->setObjectName("btnRechercheCommande");
-        btnRechercheCommande->setGeometry(QRect(70, 160, 101, 24));
+        btnRechercheCommande->setGeometry(QRect(20, 160, 101, 24));
         label_16 = new QLabel(groupBox);
         label_16->setObjectName("label_16");
         label_16->setGeometry(QRect(10, 200, 61, 16));
@@ -332,6 +333,9 @@ public:
         comboOrdreCommande->addItem(QString());
         comboOrdreCommande->setObjectName("comboOrdreCommande");
         comboOrdreCommande->setGeometry(QRect(80, 230, 121, 24));
+        btnAfficherToutesCommandes = new QPushButton(groupBox);
+        btnAfficherToutesCommandes->setObjectName("btnAfficherToutesCommandes");
+        btnAfficherToutesCommandes->setGeometry(QRect(140, 160, 101, 24));
         btnExporterCommandesPdf = new QPushButton(tabCommandes);
         btnExporterCommandesPdf->setObjectName("btnExporterCommandesPdf");
         btnExporterCommandesPdf->setGeometry(QRect(570, 480, 121, 24));
@@ -368,7 +372,7 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
+        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "Rattrapage - Gestion de Clients/Commande", nullptr));
         lineIdClient->setText(QString());
         lineNomClient->setText(QString());
         linePrenomClient->setText(QString());
@@ -402,7 +406,7 @@ public:
         btnExporterClientsPdf->setText(QCoreApplication::translate("MainWindow", "Exporter en PDF", nullptr));
         btnTotalDepenseClient->setText(QCoreApplication::translate("MainWindow", "Total d\303\251pens\303\251", nullptr));
         btnFideliteClient->setText(QCoreApplication::translate("MainWindow", "Niveau fid\303\251lit\303\251", nullptr));
-        tabWidget->setTabText(tabWidget->indexOf(tabClients), QCoreApplication::translate("MainWindow", "Tab 1", nullptr));
+        tabWidget->setTabText(tabWidget->indexOf(tabClients), QCoreApplication::translate("MainWindow", "Clients", nullptr));
         label_6->setText(QCoreApplication::translate("MainWindow", "ID Commande :", nullptr));
         label_7->setText(QCoreApplication::translate("MainWindow", "Date commande :", nullptr));
         label_8->setText(QCoreApplication::translate("MainWindow", "Montant total :", nullptr));
@@ -445,11 +449,12 @@ public:
         comboOrdreCommande->setItemText(0, QCoreApplication::translate("MainWindow", "Croissant", nullptr));
         comboOrdreCommande->setItemText(1, QCoreApplication::translate("MainWindow", "D\303\251croissant", nullptr));
 
+        btnAfficherToutesCommandes->setText(QCoreApplication::translate("MainWindow", "Afficher Tous", nullptr));
         btnExporterCommandesPdf->setText(QCoreApplication::translate("MainWindow", "Exporter en PDF", nullptr));
         btnCommandesPourClient->setText(QCoreApplication::translate("MainWindow", "Commandes du client saisi", nullptr));
         btnStatsCommandes->setText(QCoreApplication::translate("MainWindow", "Statistiques", nullptr));
         btnChiffreAffairesTotal->setText(QCoreApplication::translate("MainWindow", "Chiffre d'affaires total", nullptr));
-        tabWidget->setTabText(tabWidget->indexOf(tabCommandes), QCoreApplication::translate("MainWindow", "Tab 2", nullptr));
+        tabWidget->setTabText(tabWidget->indexOf(tabCommandes), QCoreApplication::translate("MainWindow", "Commandes", nullptr));
         menuRattrappage->setTitle(QCoreApplication::translate("MainWindow", "Rattrappage", nullptr));
     } // retranslateUi
 

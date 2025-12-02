@@ -38,6 +38,10 @@ private slots:
     void on_btnExporterCommandesPdf_clicked();
     void on_btnCommandesPourClient_clicked();
     void on_btnChiffreAffairesTotal_clicked();
+    void on_tableViewClients_clicked(const QModelIndex &index);
+    void on_tableViewCommandes_clicked(const QModelIndex &index);
+    void on_btnAfficherToutesCommandes_clicked();
+
 
     // (On ajoutera ceux de Commande plus tard si besoin)
 

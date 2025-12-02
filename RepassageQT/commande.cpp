@@ -27,13 +27,20 @@ Commande::Commande(int id, const QDate &dateCommande,
 bool Commande::ajouter()
 {
     QSqlQuery query(DBConnection::instance().db());
-    query.prepare("INSERT INTO COMMANDE (ID_COMMANDE, DATE_COMMANDE, MONTANT_TOTAL, STATUT, ID_CLIENT, MODE_PAIEMENT) "
+
+    query.prepare("INSERT INTO COMMANDE "
+                  "(ID_COMMANDE, DATE_COMMANDE, MONTANT_TOTAL, STATUT, ID_CLIENT, MODE_PAIEMENT) "
                   "VALUES (:id, :date, :montant, :statut, :idClient, :mode)");
-    query.bindValue(":mode", m_modePaiement);
-    query.bindValue(":datec", m_dateCommande);
+
+    // Date au format texte pour SQLite / Oracle
+    QString dateStr = m_dateCommande.toString("yyyy-MM-dd");
+
+    query.bindValue(":id", m_id);                    // <-- m_id, pas m_idCommande
+    query.bindValue(":date", dateStr);               // <-- :date (pas :datec)
     query.bindValue(":montant", m_montantTotal);
     query.bindValue(":statut", m_statut);
-    query.bindValue(":idclient", m_idClient);
+    query.bindValue(":idClient", m_idClient);        // <-- :idClient (majuscule C)
+    query.bindValue(":mode", m_modePaiement);
 
     if (!query.exec()) {
         qDebug() << "Erreur insertion COMMANDE:" << query.lastError().text();
@@ -41,6 +48,7 @@ bool Commande::ajouter()
     }
     return true;
 }
+
 
 bool Commande::modifier()
 {
@@ -80,11 +88,14 @@ bool Commande::supprimer()
 QSqlQueryModel* Commande::afficher()
 {
     QSqlQueryModel *model = new QSqlQueryModel();
-    model->setQuery("SELECT ID_COMMANDE, DATE_COMMANDE, MONTANT_TOTAL, STATUT, ID_CLIENT, MODE_PAIEMENT"
-                    "FROM COMMANDE",
-                    DBConnection::instance().db());
+    model->setQuery(
+        "SELECT ID_COMMANDE, DATE_COMMANDE, MONTANT_TOTAL, STATUT, MODE_PAIEMENT, ID_CLIENT "
+        "FROM COMMANDE "
+        "ORDER BY DATE_COMMANDE DESC",
+        DBConnection::instance().db());
     return model;
 }
+
 QSqlQueryModel* Commande::rechercheMulti(const QDate &dateMin,
                                          const QDate &dateMax,
                                          const QString &modePaiement,
@@ -92,8 +103,20 @@ QSqlQueryModel* Commande::rechercheMulti(const QDate &dateMin,
                                          const QString &triColonne,
                                          bool ordreAscendant)
 {
-    QString sql = "SELECT ID_COMMANDE, DATE_COMMANDE, MONTANT_TOTAL, STATUT, ID_CLIENT, MODE_PAIEMENT "
-                  "FROM COMMANDE WHERE 1 = 1";
+    QSqlQueryModel *model = new QSqlQueryModel();
+
+    QString sql =
+        "SELECT "
+        "  COMMANDE.ID_COMMANDE, "
+        "  COMMANDE.DATE_COMMANDE, "
+        "  COMMANDE.MONTANT_TOTAL, "
+        "  COMMANDE.STATUT, "
+        "  COMMANDE.MODE_PAIEMENT, "
+        "  COMMANDE.ID_CLIENT, "
+        "  CLIENT.NOM || ' ' || CLIENT.PRENOM AS CLIENT_NAME "
+        "FROM COMMANDE "
+        "LEFT JOIN CLIENT ON CLIENT.ID_CLIENT = COMMANDE.ID_CLIENT "
+        "WHERE 1 = 1";
 
     if (dateMin.isValid())
         sql += " AND DATE_COMMANDE >= :dateMin";
@@ -102,15 +125,12 @@ QSqlQueryModel* Commande::rechercheMulti(const QDate &dateMin,
     if (!modePaiement.isEmpty())
         sql += " AND MODE_PAIEMENT = :mode";
     if (idClient > 0)
-        sql += " AND ID_CLIENT = :idClient";
+        sql += " AND COMMANDE.ID_CLIENT = :idClient";
 
-    QString col = "DATE_COMMANDE";
-    if (triColonne == "Montant")
-        col = "MONTANT_TOTAL";
-    else if (triColonne == "Client")
-        col = "ID_CLIENT";
-    else if (triColonne == "Paiement")
-        col = "MODE_PAIEMENT";
+    // ---------- TRI ----------
+    QString col = triColonne;
+    if (col.isEmpty())
+        col = "DATE_COMMANDE";
 
     sql += " ORDER BY " + col + (ordreAscendant ? " ASC" : " DESC");
 
@@ -118,9 +138,9 @@ QSqlQueryModel* Commande::rechercheMulti(const QDate &dateMin,
     query.prepare(sql);
 
     if (dateMin.isValid())
-        query.bindValue(":dateMin", dateMin);
+        query.bindValue(":dateMin", dateMin.toString("yyyy-MM-dd"));
     if (dateMax.isValid())
-        query.bindValue(":dateMax", dateMax);
+        query.bindValue(":dateMax", dateMax.toString("yyyy-MM-dd"));
     if (!modePaiement.isEmpty())
         query.bindValue(":mode", modePaiement);
     if (idClient > 0)
@@ -130,7 +150,6 @@ QSqlQueryModel* Commande::rechercheMulti(const QDate &dateMin,
         qDebug() << "Erreur rechercheMulti COMMANDE:" << query.lastError().text();
     }
 
-    QSqlQueryModel *model = new QSqlQueryModel();
     model->setQuery(query);
     return model;
 }

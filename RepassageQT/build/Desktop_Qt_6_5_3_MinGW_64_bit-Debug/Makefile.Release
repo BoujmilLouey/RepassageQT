@@ -517,21 +517,16 @@ release/dbconnection.o: ../../dbconnection.cpp ../../dbconnection.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qstringbuilder.h \
 		C:/Qt/6.5.3/mingw_64/include/QtSql/QSqlError \
 		C:/Qt/6.5.3/mingw_64/include/QtSql/qsqlerror.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/QDebug \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qdebug.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qtextstream.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qiodevicebase.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qscopedpointer.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qstringconverter_base.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qcontiguouscache.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qsharedpointer.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qshareddata.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qhashfunctions.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/qsharedpointer_impl.h \
+		C:/Qt/6.5.3/mingw_64/include/QtSql/QSqlQuery \
+		C:/Qt/6.5.3/mingw_64/include/QtSql/qsqlquery.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qvariant.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qmetatype.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qcompare.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qdatastream.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qscopedpointer.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qiodevicebase.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qfloat16.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qhashfunctions.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qmath.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qalgorithms.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qiterable.h \
@@ -541,6 +536,13 @@ release/dbconnection.o: ../../dbconnection.cpp ../../dbconnection.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qobjectdefs.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qobjectdefs_impl.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qscopeguard.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qdebug.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qtextstream.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qstringconverter_base.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qcontiguouscache.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qsharedpointer.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qshareddata.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qsharedpointer_impl.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qlist.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qiterator.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qbytearraylist.h \
@@ -551,7 +553,12 @@ release/dbconnection.o: ../../dbconnection.cpp ../../dbconnection.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qset.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qhash.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qvarlengtharray.h \
-		C:/Qt/6.5.3/mingw_64/include/QtCore/q20memory.h
+		C:/Qt/6.5.3/mingw_64/include/QtCore/q20memory.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qobject.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qcoreevent.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qobject_impl.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/qbindingstorage.h \
+		C:/Qt/6.5.3/mingw_64/include/QtCore/QDebug
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\dbconnection.o ..\..\dbconnection.cpp
 
 release/main.o: ../../main.cpp ../../mainwindow.h \
@@ -728,6 +735,8 @@ release/main.o: ../../main.cpp ../../mainwindow.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qdatetime.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qcalendar.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qlocale.h \
+		../../dbconnection.h \
+		C:/Qt/6.5.3/mingw_64/include/QtSql/QSqlDatabase \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QApplication \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qapplication.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qcoreapplication.h \
@@ -751,9 +760,7 @@ release/main.o: ../../main.cpp ../../mainwindow.h \
 		C:/Qt/6.5.3/mingw_64/include/QtGui/qguiapplication_platform.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QMessageBox \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qmessagebox.h \
-		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qdialog.h \
-		../../dbconnection.h \
-		C:/Qt/6.5.3/mingw_64/include/QtSql/QSqlDatabase
+		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\main.o ..\..\main.cpp
 
 release/mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
@@ -932,6 +939,7 @@ release/mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qlocale.h \
 		ui_mainwindow.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/QVariant \
+		C:/Qt/6.5.3/mingw_64/include/QtGui/QAction \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QApplication \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qapplication.h \
 		C:/Qt/6.5.3/mingw_64/include/QtCore/qcoreapplication.h \
@@ -966,6 +974,8 @@ release/mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qtabbar.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qrubberband.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qframe.h \
+		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QDateEdit \
+		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qdatetimeedit.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QGroupBox \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qgroupbox.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QHeaderView \
@@ -983,9 +993,10 @@ release/mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		C:/Qt/6.5.3/mingw_64/include/QtGui/qtextformat.h \
 		C:/Qt/6.5.3/mingw_64/include/QtGui/qpen.h \
 		C:/Qt/6.5.3/mingw_64/include/QtGui/qtextoption.h \
+		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QMenu \
+		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qmenu.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QMenuBar \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qmenubar.h \
-		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qmenu.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/QPushButton \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qpushbutton.h \
 		C:/Qt/6.5.3/mingw_64/include/QtWidgets/qabstractbutton.h \

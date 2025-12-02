@@ -16,6 +16,7 @@
 #include <QPdfWriter>
 #include <QPainter>
 #include <QFileDialog>
+#include <QTextDocument>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -25,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_modelCommandes(nullptr)
 {
     ui->setupUi(this);
+    ui->lineIdClient->setReadOnly(true);
+    ui->lineIdCommande->setReadOnly(true);
 
     // Clients
     m_modelClients = Client::afficher();
@@ -51,9 +54,36 @@ void MainWindow::on_btnAjouterClient_clicked()
     QString tel      = ui->lineTelClient->text();
     QString adresse  = ui->lineAdresseClient->text();
 
+    // Générer automatiquement le prochain ID client
+    int idClient = 1;
+    {
+        QSqlQuery q(DBConnection::instance().db());
+        if (q.exec("SELECT COALESCE(MAX(ID_CLIENT),0) + 1 FROM CLIENT") && q.next()) {
+            idClient = q.value(0).toInt();
+        }
+    }
+    ui->lineIdClient->setText(QString::number(idClient));
+
     if (nom.isEmpty() || prenom.isEmpty()) {
         QMessageBox::warning(this, "Validation",
                              "Nom et prénom sont obligatoires pour ajouter un client.");
+        return;
+    }
+    if (!email.contains('@')) {
+        QMessageBox::warning(this, "Client",
+                             "Adresse email invalide.");
+        return;
+    }
+    bool telOk = true;
+    for (QChar c : tel) {
+        if (!c.isDigit()) {
+            telOk = false;
+            break;
+        }
+    }
+    if (!telOk || tel.length() < 8) {
+        QMessageBox::warning(this, "Client",
+                             "Téléphone invalide (uniquement des chiffres, au moins 8).");
         return;
     }
 
@@ -194,82 +224,72 @@ void MainWindow::on_btnStatsClients_clicked()
 }
 void MainWindow::on_btnExporterClientsPdf_clicked()
 {
-    // 1. Choisir où enregistrer le fichier
     QString fileName = QFileDialog::getSaveFileName(
         this,
-        "Enregistrer la liste des clients en PDF",
+        "Exporter les clients en PDF",
         "clients.pdf",
         "Fichiers PDF (*.pdf)");
 
     if (fileName.isEmpty())
         return;
 
-    // 2. Préparer le writer PDF
     QPdfWriter writer(fileName);
     writer.setPageSize(QPageSize(QPageSize::A4));
-    writer.setPageMargins(QMarginsF(20, 20, 20, 20));
+    writer.setPageMargins(QMarginsF(25, 25, 25, 25));
 
-    QPainter painter(&writer);
-    if (!painter.isActive()) {
-        QMessageBox::critical(this, "PDF",
-                              "Impossible de créer le PDF.");
-        return;
-    }
-
-    int y = 50;
-
-    // Titre
-    painter.setFont(QFont("Helvetica", 14, QFont::Bold));
-    painter.drawText(0, y, "Liste des clients");
-    y += 40;
-
-    painter.setFont(QFont("Helvetica", 9));
-
-    // 3. Lire les clients depuis la base
     QSqlQuery query(DBConnection::instance().db());
     query.prepare("SELECT ID_CLIENT, NOM, PRENOM, EMAIL, TELEPHONE, ADRESSE "
-                  "FROM CLIENT "
-                  "ORDER BY NOM");
+                  "FROM CLIENT ORDER BY NOM");
+    query.exec();
 
-    if (!query.exec()) {
-        QMessageBox::critical(this, "PDF",
-                              "Erreur lors de la lecture des clients.");
-        painter.end();
-        return;
-    }
+    QString html;
 
-    // 4. Écrire ligne par ligne
+    html += "<html><head><meta charset='utf-8'>"
+            "<style>"
+            "body { font-family: 'Helvetica'; font-size: 34pt; line-height: 260%; }"
+            "h2 { text-align: center; font-size: 48pt; margin-bottom: 50px; }"
+            "table { border-collapse: collapse; width: 100%; font-size: 34pt; }"
+            "th, td { border: 3px solid #000; padding: 24px; }"
+            "th { background-color: #f0f0f0; font-size: 40pt; }"
+            "</style></head><body>";
+
+    html += "<h2>Liste des clients</h2>";
+    html += "<table>";
+
+    html += "<tr>"
+            "<th>ID</th>"
+            "<th>Nom</th>"
+            "<th>Prénom</th>"
+            "<th>Email</th>"
+            "<th>Téléphone</th>"
+            "<th>Adresse</th>"
+            "</tr>";
+
     while (query.next()) {
-        int id          = query.value("ID_CLIENT").toInt();
-        QString nom     = query.value("NOM").toString();
-        QString prenom  = query.value("PRENOM").toString();
-        QString email   = query.value("EMAIL").toString();
-        QString tel     = query.value("TELEPHONE").toString();
-        QString adresse = query.value("ADRESSE").toString();
-
-        QString line = QString("%1 - %2 %3 | %4 | %5 | %6")
-                           .arg(id)
-                           .arg(nom)
-                           .arg(prenom)
-                           .arg(email)
-                           .arg(tel)
-                           .arg(adresse);
-
-        painter.drawText(0, y, line);
-        y += 20;
-
-        // Nouvelle page si on dépasse
-        if (y > writer.height() - 50) {
-            writer.newPage();
-            y = 50;
-        }
+        html += "<tr>";
+        html += "<td>" + query.value("ID_CLIENT").toString() + "</td>";
+        html += "<td>" + query.value("NOM").toString() + "</td>";
+        html += "<td>" + query.value("PRENOM").toString() + "</td>";
+        html += "<td>" + query.value("EMAIL").toString() + "</td>";
+        html += "<td>" + query.value("TELEPHONE").toString() + "</td>";
+        html += "<td>" + query.value("ADRESSE").toString() + "</td>";
+        html += "</tr>";
     }
 
+    html += "</table></body></html>";
+
+    QTextDocument doc;
+    doc.setHtml(html);
+
+    QPainter painter(&writer);
+    doc.drawContents(&painter);
     painter.end();
 
-    QMessageBox::information(this, "PDF",
-                             "PDF généré avec succès.");
+    QMessageBox::information(this, "PDF", "PDF géant généré !");
 }
+
+
+
 void MainWindow::on_btnTotalDepenseClient_clicked()
 {
     int id = ui->lineIdClient->text().toInt();
@@ -303,13 +323,16 @@ void MainWindow::on_btnFideliteClient_clicked()
 }
 void MainWindow::on_btnAjouterCommande_clicked()
 {
-    bool okIdCmd = false;
-    int idCmd = ui->lineIdCommande->text().toInt(&okIdCmd);
-    if (!okIdCmd || idCmd <= 0) {
-        QMessageBox::warning(this, "Commande",
-                             "Veuillez saisir un ID commande valide.");
-        return;
+    // Générer automatiquement le prochain ID commande
+    int idCmd = 1;
+    {
+        QSqlQuery q(DBConnection::instance().db());
+        if (q.exec("SELECT COALESCE(MAX(ID_COMMANDE),0) + 1 FROM COMMANDE") && q.next()) {
+            idCmd = q.value(0).toInt();
+        }
     }
+    ui->lineIdCommande->setText(QString::number(idCmd));
+
 
     QDate dateCmd = ui->dateCommande->date();
 
@@ -320,10 +343,20 @@ void MainWindow::on_btnAjouterCommande_clicked()
                              "Veuillez saisir un montant valide.");
         return;
     }
+    // Montant > 0
+    if (!okMontant || montant <= 0) {
+        QMessageBox::warning(this, "Commande",
+                             "Le montant doit être un nombre positif.");
+        return;
+    }
 
     QString statut = ui->comboStatutCommande->currentText();
     QString mode = ui->comboModePaiement->currentText();
-
+    if (statut.trimmed().isEmpty() || mode.trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Commande",
+                             "Statut et mode de paiement sont obligatoires.");
+        return;
+    }
     bool okIdClient = false;
     int idClient = ui->lineIdClientCommande->text().toInt(&okIdClient);
     if (!okIdClient || idClient <= 0) {
@@ -331,6 +364,18 @@ void MainWindow::on_btnAjouterCommande_clicked()
                              "Veuillez saisir un ID client valide.");
         return;
     }
+    // Vérifier que le client existe réellement dans la table CLIENT
+    QSqlQuery q(DBConnection::instance().db());
+    q.prepare("SELECT COUNT(*) FROM CLIENT WHERE ID_CLIENT = :id");
+    q.bindValue(":id", idClient);
+
+    if (!q.exec() || !q.next() || q.value(0).toInt() == 0) {
+        QMessageBox::warning(this, "Commande",
+                             "Le client avec cet ID n'existe pas.\n"
+                             "Veuillez choisir un ID client existant.");
+        return;
+    }
+
 
     Commande c(idCmd, dateCmd, montant, statut, idClient, mode);
     if (c.ajouter()) {
@@ -375,6 +420,18 @@ void MainWindow::on_btnModifierCommande_clicked()
                              "Veuillez saisir un ID client valide.");
         return;
     }
+    // Vérifier que le client existe réellement dans la table CLIENT
+    QSqlQuery q(DBConnection::instance().db());
+    q.prepare("SELECT COUNT(*) FROM CLIENT WHERE ID_CLIENT = :id");
+    q.bindValue(":id", idClient);
+
+    if (!q.exec() || !q.next() || q.value(0).toInt() == 0) {
+        QMessageBox::warning(this, "Commande",
+                             "Le client avec cet ID n'existe pas.\n"
+                             "Veuillez choisir un ID client existant.");
+        return;
+    }
+
 
     Commande c(idCmd, dateCmd, montant, statut, idClient, mode);
     if (c.modifier()) {
@@ -416,31 +473,60 @@ void MainWindow::on_btnSupprimerCommande_clicked()
 }
 void MainWindow::on_btnRechercheCommande_clicked()
 {
-    // Critères
     QDate dateMin = ui->dateMinCommande->date();
     QDate dateMax = ui->dateMaxCommande->date();
+    QString modePaiement;
 
-    QString mode = ui->comboModePaiementFiltre->currentText();
-    if (mode == "Tous")
-        mode.clear(); // pas de filtre sur le mode de paiement
+    // comboModePaiementFiltre : index 0 = "Tous"
+    int idxMode = ui->comboModePaiementFiltre->currentIndex();
+    if (idxMode > 0)
+        modePaiement = ui->comboModePaiementFiltre->currentText();
 
     bool okIdClient = false;
     int idClient = ui->lineIdClientFiltreCommande->text().toInt(&okIdClient);
     if (!okIdClient)
-        idClient = 0; // pas de filtre client
+        idClient = 0; // pas de filtre
 
-    QString triCol = ui->comboTriCommande->currentText();   // "Date", "Montant", "Client", "Paiement"
-    bool asc = (ui->comboOrdreCommande->currentText() == "Croissant");
+    // ---------- TRI ----------
+    QString triCol;
+    switch (ui->comboTriCommande->currentIndex()) {
+    case 0: // Date
+        triCol = "DATE_COMMANDE";
+        break;
+    case 1: // Montant
+        triCol = "MONTANT_TOTAL";
+        break;
+    case 2: // Client
+        triCol = "ID_CLIENT";
+        break;
+    case 3: // Paiement
+        triCol = "MODE_PAIEMENT";
+        break;
+    default:
+        triCol = "DATE_COMMANDE";
+        break;
+    }
+
+    bool asc = (ui->comboOrdreCommande->currentIndex() == 0); // 0 = Croissant
 
     // Appel métier
-    QSqlQueryModel *model = Commande::rechercheMulti(dateMin, dateMax, mode, idClient, triCol, asc);
+    QSqlQueryModel *model = Commande::rechercheMulti(dateMin,
+                                                     dateMax,
+                                                     modePaiement,
+                                                     idClient,
+                                                     triCol,
+                                                     asc);
 
-    // Rafraîchir le tableau
     delete m_modelCommandes;
     m_modelCommandes = model;
     ui->tableViewCommandes->setModel(m_modelCommandes);
     ui->tableViewCommandes->resizeColumnsToContents();
+    ui->tableViewCommandes->setColumnHidden(5, true); // cache ID_CLIENT
+
+    // Bonus: autoriser tri en cliquant l'en-tête du tableau
+    ui->tableViewCommandes->setSortingEnabled(true);
 }
+
 void MainWindow::on_btnStatsCommandes_clicked()
 {
     QSqlQuery query(DBConnection::instance().db());
@@ -510,65 +596,64 @@ void MainWindow::on_btnExporterCommandesPdf_clicked()
 
     QPdfWriter writer(fileName);
     writer.setPageSize(QPageSize(QPageSize::A4));
-    writer.setPageMargins(QMarginsF(20, 20, 20, 20));
-
-    QPainter painter(&writer);
-    if (!painter.isActive()) {
-        QMessageBox::critical(this, "PDF",
-                              "Impossible de créer le PDF.");
-        return;
-    }
-
-    int y = 50;
-
-    painter.setFont(QFont("Helvetica", 14, QFont::Bold));
-    painter.drawText(0, y, "Liste des commandes");
-    y += 40;
-
-    painter.setFont(QFont("Helvetica", 9));
+    writer.setPageMargins(QMarginsF(25, 25, 25, 25));
 
     QSqlQuery query(DBConnection::instance().db());
     query.prepare("SELECT ID_COMMANDE, DATE_COMMANDE, MONTANT_TOTAL, STATUT, ID_CLIENT, MODE_PAIEMENT "
-                  "FROM COMMANDE "
-                  "ORDER BY DATE_COMMANDE DESC");
+                  "FROM COMMANDE ORDER BY DATE_COMMANDE DESC");
+    query.exec();
 
-    if (!query.exec()) {
-        QMessageBox::critical(this, "PDF",
-                              "Erreur lors de la lecture des commandes.");
-        painter.end();
-        return;
-    }
+    QString html;
+
+    html += "<html><head><meta charset='utf-8'>"
+            "<style>"
+            "body { font-family: 'Helvetica'; font-size: 34pt; line-height: 260%; }"
+            "h2 { text-align: center; font-size: 48pt; margin-bottom: 50px; }"
+            "table { border-collapse: collapse; width: 100%; font-size: 34pt; }"
+            "th, td { border: 3px solid #000; padding: 24px; }"
+            "th { background-color: #f0f0f0; font-size: 40pt; }"
+            "</style></head><body>";
+
+    html += "<h2>Liste des commandes</h2>";
+    html += "<table>";
+
+    html += "<tr>"
+            "<th>ID</th>"
+            "<th>Date</th>"
+            "<th>Montant</th>"
+            "<th>Statut</th>"
+            "<th>Client</th>"
+            "<th>Mode</th>"
+            "</tr>";
 
     while (query.next()) {
-        int idCmd       = query.value("ID_COMMANDE").toInt();
-        QDate dateCmd   = query.value("DATE_COMMANDE").toDate();
-        double montant  = query.value("MONTANT_TOTAL").toDouble();
-        QString statut  = query.value("STATUT").toString();
-        int idClient    = query.value("ID_CLIENT").toInt();
-        QString mode    = query.value("MODE_PAIEMENT").toString();
+        QString date = QDate::fromString(
+                           query.value("DATE_COMMANDE").toString(),
+                           "yyyy-MM-dd")
+                           .toString("dd/MM/yyyy");
 
-        QString line = QString("%1 - %2 | %3 DT | %4 | Client %5 | %6")
-                           .arg(idCmd)
-                           .arg(dateCmd.toString("dd/MM/yyyy"))
-                           .arg(montant, 0, 'f', 2)
-                           .arg(statut)
-                           .arg(idClient)
-                           .arg(mode);
-
-        painter.drawText(0, y, line);
-        y += 20;
-
-        if (y > writer.height() - 50) {
-            writer.newPage();
-            y = 50;
-        }
+        html += "<tr>";
+        html += "<td>" + query.value("ID_COMMANDE").toString() + "</td>";
+        html += "<td>" + date + "</td>";
+        html += "<td>" + QString::number(query.value("MONTANT_TOTAL").toDouble(), 'f', 2) + "</td>";
+        html += "<td>" + query.value("STATUT").toString() + "</td>";
+        html += "<td>" + query.value("ID_CLIENT").toString() + "</td>";
+        html += "<td>" + query.value("MODE_PAIEMENT").toString() + "</td>";
+        html += "</tr>";
     }
 
+    html += "</table></body></html>";
+
+    QTextDocument doc;
+    doc.setHtml(html);
+
+    QPainter painter(&writer);
+    doc.drawContents(&painter);
     painter.end();
 
-    QMessageBox::information(this, "PDF",
-                             "PDF des commandes généré avec succès.");
+    QMessageBox::information(this, "PDF", "PDF géant généré !");
 }
+
 void MainWindow::on_btnCommandesPourClient_clicked()
 {
     bool okIdClient = false;
@@ -595,6 +680,88 @@ void MainWindow::on_btnChiffreAffairesTotal_clicked()
     QMessageBox::information(this, "Chiffre d'affaires total",
                              "Le chiffre d'affaires total (toutes commandes) est de : "
                                  + QString::number(ca, 'f', 2) + " DT");
+}
+
+void MainWindow::on_tableViewClients_clicked(const QModelIndex &index)
+{
+    if (!index.isValid())
+        return;
+
+    int row = index.row();
+    QAbstractItemModel *model = ui->tableViewClients->model();
+    if (!model)
+        return;
+
+    int idClient = model->data(model->index(row, 0)).toInt();          // ID_CLIENT
+    QString nom   = model->data(model->index(row, 1)).toString();      // NOM
+    QString prenom= model->data(model->index(row, 2)).toString();      // PRENOM
+    QString email = model->data(model->index(row, 3)).toString();      // EMAIL
+    QString tel   = model->data(model->index(row, 4)).toString();      // TELEPHONE
+    QString adr   = model->data(model->index(row, 5)).toString();      // ADRESSE
+
+    ui->lineIdClient->setText(QString::number(idClient));
+    ui->lineNomClient->setText(nom);
+    ui->linePrenomClient->setText(prenom);
+    ui->lineEmailClient->setText(email);
+    ui->lineTelClient->setText(tel);
+    ui->lineAdresseClient->setText(adr);
+}
+void MainWindow::on_tableViewCommandes_clicked(const QModelIndex &index)
+{
+    if (!index.isValid())
+        return;
+
+    int row = index.row();
+    QAbstractItemModel *model = ui->tableViewCommandes->model();
+    if (!model)
+        return;
+
+    int idCmd        = model->data(model->index(row, 0)).toInt();        // ID_COMMANDE
+    QString dateStr  = model->data(model->index(row, 1)).toString();     // DATE_COMMANDE
+    double montant   = model->data(model->index(row, 2)).toDouble();     // MONTANT_TOTAL
+    QString statut   = model->data(model->index(row, 3)).toString();     // STATUT
+    QString mode     = model->data(model->index(row, 4)).toString();     // MODE_PAIEMENT
+    int idClient     = model->data(model->index(row, 5)).toInt();        // ID_CLIENT
+
+    ui->lineIdCommande->setText(QString::number(idCmd));
+
+    // Si tu stockes la date en texte "yyyy-MM-dd"
+    QDate d = QDate::fromString(dateStr, "yyyy-MM-dd");
+    if (!d.isValid()) {
+        // fallback si autre format
+        d = QDate::fromString(dateStr, "dd/MM/yyyy");
+    }
+    if (d.isValid())
+        ui->dateCommande->setDate(d);
+
+    ui->lineMontantCommande->setText(QString::number(montant, 'f', 2));
+
+    // Remettre le bon texte dans les combos (si l'item existe)
+    int idxStatut = ui->comboStatutCommande->findText(statut);
+    if (idxStatut >= 0)
+        ui->comboStatutCommande->setCurrentIndex(idxStatut);
+
+    int idxMode = ui->comboModePaiement->findText(mode);
+    if (idxMode >= 0)
+        ui->comboModePaiement->setCurrentIndex(idxMode);
+
+    ui->lineIdClientCommande->setText(QString::number(idClient));
+}
+void MainWindow::on_btnAfficherToutesCommandes_clicked()
+{
+    delete m_modelCommandes;
+    m_modelCommandes = Commande::afficher();
+    ui->tableViewCommandes->setModel(m_modelCommandes);
+    ui->tableViewCommandes->resizeColumnsToContents();
+    ui->tableViewCommandes->setColumnHidden(5, true); // cache ID_CLIENT si besoin
+
+    // Optionnel : reset des champs de recherche
+    ui->dateMinCommande->setDate(QDate::currentDate());
+    ui->dateMaxCommande->setDate(QDate::currentDate());
+    ui->comboModePaiementFiltre->setCurrentIndex(0);   // "Tous"
+    ui->lineIdClientFiltreCommande->clear();
+    ui->comboTriCommande->setCurrentIndex(0);          // Date
+    ui->comboOrdreCommande->setCurrentIndex(0);        // Croissant
 }
 
 
